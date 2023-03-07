@@ -17,22 +17,33 @@ class GameRender:
         pygame.display.update()
 
     
-    def update_state(self, board, turn, is_win):
+    def update_state(self, board, current_turn, player_win):
+        """
+        If the game is over, display the winner. If the game is not over, display whose turn it is
+        
+        :param board: the current state of the board
+        :param current_turn: the current turn of the game
+        :param is_win: True if the game is over, False otherwise
+        :return: The return value is the value of the last expression evaluated.
+        """
         self.clear()
-        if(is_win):
+        if(player_win != game_settings.NO_ONE):
             # current turn == HUMAN => COM win
-            if(turn == game_settings.COM):
+            if(player_win == game_settings.COM):
                 self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_BLUE)
+                return
             # current turn == HUMAN => COM win
-            if(turn == game_settings.HUMAN):
+            if(player_win == game_settings.HUMAN):
                 self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_RED)
+                return
+
+        if(current_turn == game_settings.HUMAN):
+            self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED)
             return
 
-        if(turn == game_settings.HUMAN):
-            self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED)
-
-        if(turn == game_settings.COM):
+        if(current_turn == game_settings.COM):
             self.draw_board(board, render_settings.COM_TURN_INFO_TEXT, render_settings.COLOR_BLUE)
+            return
 
     def draw_X(self, x, y):
         #    x
@@ -118,16 +129,23 @@ class GameRender:
         print("Drawing board is completed")
     
     #COM moves
-    def update_com_move(self, com_move, state: State, is_win):
+    def handle_com_move(self, com_move, state: State):
         state.update_move(game_settings.COM, com_move)
-        self.update_state(state.board, game_settings.HUMAN, is_win)
+        #test
+        print("HUMAN move: ", com_move)
+        #/test
+        return
 
     #HUMAN moves
-    def is_new_game_button_pressed(self, mouse_position):
-        mouse_x_position, mouse_y_position = mouse_position
-        is_in_x_button_area = render_settings.NEW_GAME_BUTTON_POS_X_MIN < mouse_x_position < render_settings.NEW_GAME_BUTTON_POS_X_MAX
-        is_in_y_button_area = render_settings.NEW_GAME_BUTTON_POS_Y_MIN < mouse_y_position < render_settings.NEW_GAME_BUTTON_POS_Y_MAX
-        return is_in_x_button_area and is_in_y_button_area
+    def is_new_game_button_pressed(self):
+        mouse_button_pressed = pygame.mouse.get_pressed()
+        if mouse_button_pressed[0]:
+            mouse_position = pygame.mouse.get_pos()
+            mouse_x_position, mouse_y_position = mouse_position
+            is_in_x_button_area = render_settings.NEW_GAME_BUTTON_POS_X_MIN < mouse_x_position < render_settings.NEW_GAME_BUTTON_POS_X_MAX
+            is_in_y_button_area = render_settings.NEW_GAME_BUTTON_POS_Y_MIN < mouse_y_position < render_settings.NEW_GAME_BUTTON_POS_Y_MAX
+            return is_in_x_button_area and is_in_y_button_area
+        return False
         
     def is_new_move_valid(self, mouse_position, state: State):
         if (self.is_mouse_position_in_board_area(mouse_position)):
@@ -154,20 +172,24 @@ class GameRender:
         self.screen.fill(render_settings.BOARD_COLOR)
         pygame.display.update()
 
-    def handle_human_action(self, state: State, is_win):
+    def handle_human_move(self, state: State):
+        """
+        If the mouse is clicked, and the move is valid, then update the state with the human move
+        
+        :param state: State
+        :type state: State
+        :return: update the position of the square that the human player clicked on to the state.board.
+        """
         mouse_button_pressed = pygame.mouse.get_pressed()
         # mouse left click
         if mouse_button_pressed[0]:
             mouse_position = pygame.mouse.get_pos()
-            if self.is_new_game_button_pressed(mouse_position):
-                state = State()
-                print(state.board)
-                self = GameRender(state)
-                return True
             if self.is_new_move_valid(mouse_position, state):
                 human_move = self.get_board_square_position(mouse_position)
                 state.update_move(game_settings.HUMAN, human_move)
-                self.update_state(state.board, game_settings.COM, is_win)
-                return True
-        return False
+                #test
+                print("HUMAN move: ", human_move)
+                #/test
+                return
+        return
     
