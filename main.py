@@ -23,13 +23,24 @@ if __name__ == "__main__":
 
         # AI move first
         if(game_settings.FIRST_TURN == game_settings.COM and len(current_match.moves) == 0):
+            
+            # Announcement
+            print("AI is calculating next move...")
+            print("---------------------------------")
+
             AI_calulation_time = -pygame.time.get_ticks()
             ai_move = ai.next_move()
             AI_calulation_time += pygame.time.get_ticks()
+            
+            # Announcement
+            print("---------------------------------")
             print("AI calculation time: ", AI_calulation_time/1000 ," seconds (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
+            
             render.handle_com_move(ai_move, current_match)
             render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
-                
+        #
+        # HUMAN move first
+        #         
         for event in pygame.event.get():
 
             #exit
@@ -53,6 +64,10 @@ if __name__ == "__main__":
                 
                 # HUMAN turn
                 if(current_match.current_turn == game_settings.HUMAN):
+
+                    # Announcement
+                    print("Waiting for HUMAN's move")
+
                     render.handle_human_move(current_match) 
                     render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
                     ai.state.board = current_match.board
@@ -71,11 +86,13 @@ if __name__ == "__main__":
 
                     # Announcement
                     print("AI is calculating next move...")
+                    print("---------------------------------")
 
                     ai_move = ai.next_move()
                     AI_calulation_time += pygame.time.get_ticks()
                     
                     # Announcement
+                    print("---------------------------------")
                     print("AI calculation time: ", AI_calulation_time/1000 ," seconds.")
                     
                     render.handle_com_move(ai_move, current_match)

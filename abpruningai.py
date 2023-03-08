@@ -27,20 +27,73 @@ class ABPruningAI:
             print("AI used random move.")
             return self.random_move(self.state, 1)
 
+        # =======================================
         # if opponent or AI has checkmate move, AI will take this move
         # take move if AI has checkmate move
+
+        # Announcement
+        print("Checking for checkmate move...")
+
         com_checkmate_move = State.checkmate(self.state.board, self.state.current_turn)
         if com_checkmate_move: 
+
+            # Announcement
+            print("AI has checkmate move.")
+        
             return com_checkmate_move
         
         # otherwise if opponent has checkmate move, take it
         opponent_checkmate_move = State.checkmate(self.state.board, game_settings.get_opponent(self.state.current_turn))
-        if opponent_checkmate_move: 
+        if opponent_checkmate_move:
+
+            # Announcement
+            print("HUMAN has checkmate move.")
+
             return opponent_checkmate_move
 
-        # "4-2" combo is a block 4
+        # Announcement
+        print("No one has checkmate move.")
 
-        # if opponent or AI has high impact move, AI will take this move
+        # Announcement
+        print("---------------------------------")
+        
+        # =======================================
+        # one-end-blocked three and unblocked two combo move (ob3ub2 combo move) 
+        # if opponent or AI has a ob3ub2 combo move, AI will take this move
+
+        # Announcement
+        print("Checking for \"one-end-blocked three and unblocked two\" combo move...")
+
+        opponent_ob3ub2_move = State.combo_ob3ub2_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
+        com_ob3ub2_move = State.combo_ob3ub2_move(self.state.board, self.state.current_turn)
+        
+        if com_ob3ub2_move:
+            
+            # Announcement
+            print("AI has \"one-end-blocked three and unblocked two\" combo move. Take it!")
+            
+            return com_ob3ub2_move
+        
+        if opponent_ob3ub2_move: # >=: Prioritize playing the move to the advantage of the player
+            
+            # Announcement
+            print("HUMAN has \"one-end-blocked three and unblocked two\" combo move. Block it!")
+            
+            return com_high_impact_move
+
+        # Announcement
+        print("There is no such combo move.")
+        
+        # Announcement
+        print("---------------------------------")
+        
+        # =======================================
+        # if opponent or AI has a high impact move, 
+        # AI will take whether move which has highest score
+
+        # Announcement
+        print("Checking for high impact move...")
+
         if ai_settings.ENABLE_HIGH_IMPACT_MOVE:
             opponent_high_impact_move, opponent_high_impact_score = State.high_impact_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
             com_high_impact_move, com_high_impact_score = State.high_impact_move(self.state.board, self.state.current_turn)
@@ -57,11 +110,18 @@ class ABPruningAI:
                 print("AI used high impact move function (return an offensive move).")
                 
                 return com_high_impact_move
-
-        # if not
+            
+            # Announcement
+            print("Ineligible to use high impact move function")
         
         # Announcement
-        print("Ineligible to use high impact move function, AI uses Alpha-Beta Pruning algorithm.")
+        print("---------------------------------")
+
+        # =======================================
+        # if not
+
+        # Announcement
+        print("AI has decided to use the Alpha-Beta pruning algorithm. Calculating...")
         
         root_node = MinimaxNode(self.state.board, self.state.moves[-1::1], self.state.current_turn, None)
         
@@ -70,8 +130,10 @@ class ABPruningAI:
         # print(', '.join("%s: %s" % item for item in attrs.items()))
 
         score = ABPruningAI.alpha_beta(root_node, ai_settings.MAX_TREE_DEPTH_LEVEL, -infinity, +infinity, True)
+        
         # Announcement
-        print("AI used Alpha-Beta Pruning algorithm to calculate move (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
+        print("Completed calculation with depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ".")
+
         return root_node.planing_next_move
 
     def random_move(self, state: State, expansion_range):

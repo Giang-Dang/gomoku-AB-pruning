@@ -163,7 +163,7 @@ class GameRender:
 
         # Announcement
         print("Drawing board is completed.")
-        print("=================================")
+        print("==================================================================")
     
     #COM moves
     def handle_com_move(self, com_move, state: State):
@@ -175,11 +175,11 @@ class GameRender:
         :type state: State
         :return: the move of the computer.
         """
-        state.update_move(game_settings.COM, com_move)
 
         # Announcement
         print("AI move: (row:", com_move[0], ", column:", com_move[1], ").")
 
+        state.update_move(game_settings.COM, com_move)
         return
 
     #HUMAN moves
@@ -262,11 +262,11 @@ class GameRender:
             mouse_position = pygame.mouse.get_pos()
             if self.is_new_move_valid(mouse_position, state):
                 human_move = self.get_board_square_position(mouse_position)
-                state.update_move(game_settings.HUMAN, human_move)
 
                 # Announcement
                 print("HUMAN move: (row:", human_move[0], ", column:", human_move[1], ").")
-
+                
+                state.update_move(game_settings.HUMAN, human_move)
                 return
         return
     

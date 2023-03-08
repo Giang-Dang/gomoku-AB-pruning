@@ -236,13 +236,13 @@ class State:
         It takes a board, a move, a streak, and the current turn, and returns a list of lists of the
         pieces in the directions of the move
         
-        :param board: the current board
+        :param board: the current board (will not be changed after running this function)
         :param move: the move that is being evaluated
         :param streak: the number of pieces in a row needed to win
         :param current_turn: the current player's turn
         :return: A list of lists of patterns.
         """
-        if not State.is_valid_move(temp_move, board):
+        if not State.is_valid_move(move, board):
             return []
         # streak = number of unblocked pieces
         move_r, move_c = move
@@ -384,7 +384,6 @@ class State:
                         X_score += ai_settings.X_5_PATTERNS_SCORES[p]
         return(O_score, X_score)
 
-    # unused function
     def checkmate(board, current_turn):
         """
         It checks if there's a continuous-five (win condition) in the board
@@ -394,7 +393,6 @@ class State:
         :return: a tuple of the row and column of the winning move.
         """
         # checkmate = a continuous-five
-
         # continuous-five
         streak = 5 - 1 # continuous-five cant be blocked
         continuous_five_pattern = None
@@ -403,21 +401,22 @@ class State:
         elif(current_turn == game_settings.O):
             continuous_five_pattern = ai_settings.O_END_GAME_PATTERN
 
-        for r in range(0, game_settings.BOARD_ROWS):
-            for c in range(0, game_settings.BOARD_COLS):
-                direction_patterns = State.get_direction_patterns(board, (r, c), streak, current_turn)
-                if(len(direction_patterns) > 0) :
-                    for pattern in direction_patterns:
-                        for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
-                            checking_pattern = [
-                                pattern[i],
-                                pattern[i+1],
-                                pattern[i+2],
-                                pattern[i+3],
-                                pattern[i+4],
-                            ]
-                            if(checking_pattern == continuous_five_pattern):
-                                return (r, c)
+        possible_moves = State.generate_possible_moves(board, 1)
+        for move in possible_moves:
+            r, c = move
+            direction_patterns = State.get_direction_patterns(board, (r, c), streak, current_turn)
+            if(len(direction_patterns) > 0) :
+                for pattern in direction_patterns:
+                    for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
+                        checking_pattern = [
+                            pattern[i],
+                            pattern[i+1],
+                            pattern[i+2],
+                            pattern[i+3],
+                            pattern[i+4],
+                        ]
+                        if(checking_pattern == continuous_five_pattern):
+                            return (r, c)
         return None
     
     # unused function
@@ -494,12 +493,80 @@ class State:
         # unblocked-threes combine one-end-blocked-fours
         return False
     
-    def combo_ob3ub2_move(board, current_turn, move):
+    def combo_ob3ub2_move(board, current_turn):
         # "ob3-2"(one-end-blocked three and unblocked two) combo move
         # is a combo which could create a one-end-blocked-four 
         # and a unblocked three 
-        
-        pass
+
+        # get moves that could create one-end-blocked-four
+        blocked_four_patterns = []
+        blocked_four_pattern_length = 5
+        blocked_four_pattern_matched_count = 0
+        matched_blocked_four_pattern_moves = []
+        # add element(s) to blocked_four_patterns
+        if(current_turn == game_settings.X):
+            for pattern in ai_settings.X_5_PATTERNS:
+                if(pattern.count(game_settings.X) == 4):
+                    blocked_four_patterns.append(pattern)
+        elif(current_turn == game_settings.O):
+            for pattern in ai_settings.O_5_PATTERNS:
+                if(pattern.count(game_settings.O) == 4):
+                    blocked_four_patterns.append(pattern)
+        # scan for blocked-four
+        possible_moves = State.generate_possible_moves(board, 2)
+        for move in possible_moves:
+            direction_patterns = State.get_direction_patterns(board, move, 4, current_turn) # streak = 4 because we are checking length-5 patterns
+            if(len(direction_patterns) > 0) :
+                for pattern in direction_patterns:
+                    for i in range(0, len(pattern) - blocked_four_pattern_length + 1):
+                        checking_pattern = [
+                            pattern[i],
+                            pattern[i+1],
+                            pattern[i+2],
+                            pattern[i+3],
+                            pattern[i+4],
+                        ]
+                        for blocked_four_pattern in blocked_four_patterns:
+                            if(checking_pattern == blocked_four_pattern):
+                                blocked_four_pattern_matched_count += 1
+                                matched_blocked_four_pattern_moves.append(move)
+
+        # for each move that could create one-end-blocked-four, 
+        # we scan if there is any unblocked-three created by that move
+        if blocked_four_pattern_matched_count > 0:
+            # create and add element(s) to unblocked_three_pattens
+            streak = 3 # streak = number of unblocked pieces
+            unblocked_three_patterns = []
+            unblocked_three_pattern_length = 6
+            if(current_turn == game_settings.X):
+                for pattern in ai_settings.X_6_PATTERNS:
+                    if(pattern.count(game_settings.X) == 3):
+                        unblocked_three_patterns.append(pattern)
+            elif(current_turn == game_settings.O):
+                for pattern in ai_settings.O_6_PATTERNS:
+                    if(pattern.count(game_settings.O) == 3):
+                        unblocked_three_patterns.append(pattern)
+            # scan for unblocked-three
+            for move in matched_blocked_four_pattern_moves:
+                direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)        
+                if(len(direction_patterns) > 0) :
+                    for pattern in direction_patterns:
+                        # make sure that current_turn is counted in pattern
+                        if(pattern[0] != game_settings.EMPTY and pattern[-1] != game_settings.EMPTY):
+                            for i in range(0, len(pattern) - unblocked_three_pattern_length + 1):
+                                checking_pattern = [
+                                    pattern[i],
+                                    pattern[i+1],
+                                    pattern[i+2],
+                                    pattern[i+3],
+                                    pattern[i+4],
+                                    pattern[i+5]
+                                ]
+                                for unblocked_three_pattern in unblocked_three_patterns:
+                                    if(checking_pattern == unblocked_three_pattern):
+                                        return move
+
+        return None
 
     
 
