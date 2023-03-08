@@ -385,16 +385,15 @@ class State:
         return(O_score, X_score)
 
     # unused function
-    def has_checkmate(board, current_turn, move):
+    def checkmate(board, current_turn):
         """
-        It checks if a move will be a "win move" for the current player
+        It checks if there's a continuous-five (win condition) in the board
         
         :param board: the current board
         :param current_turn: the current player's turn
-        :param move: the move that was just made
-        :return: a boolean value.
+        :return: a tuple of the row and column of the winning move.
         """
-        # has_checkmate = a continuous-five
+        # checkmate = a continuous-five
 
         # continuous-five
         streak = 5 - 1 # continuous-five cant be blocked
@@ -404,20 +403,22 @@ class State:
         elif(current_turn == game_settings.O):
             continuous_five_pattern = ai_settings.O_END_GAME_PATTERN
 
-        direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)
-        if(len(direction_patterns) > 0) :
-            for pattern in direction_patterns:
-                for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
-                    checking_pattern = [
-                        pattern[i],
-                        pattern[i+1],
-                        pattern[i+2],
-                        pattern[i+3],
-                        pattern[i+4],
-                    ]
-                    if(checking_pattern == continuous_five_pattern):
-                        return True
-        return False
+        for r in range(0, game_settings.BOARD_ROWS):
+            for c in range(0, game_settings.BOARD_COLS):
+                direction_patterns = State.get_direction_patterns(board, (r, c), streak, current_turn)
+                if(len(direction_patterns) > 0) :
+                    for pattern in direction_patterns:
+                        for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
+                            checking_pattern = [
+                                pattern[i],
+                                pattern[i+1],
+                                pattern[i+2],
+                                pattern[i+3],
+                                pattern[i+4],
+                            ]
+                            if(checking_pattern == continuous_five_pattern):
+                                return (r, c)
+        return None
     
     # unused function
     def has_check(board, current_turn, move):
@@ -492,3 +493,13 @@ class State:
             
         # unblocked-threes combine one-end-blocked-fours
         return False
+    
+    def combo_ob3ub2_move(board, current_turn, move):
+        # "ob3-2"(one-end-blocked three and unblocked two) combo move
+        # is a combo which could create a one-end-blocked-four 
+        # and a unblocked three 
+        
+        pass
+
+    
+
