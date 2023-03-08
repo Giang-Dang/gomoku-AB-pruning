@@ -312,7 +312,7 @@ class State:
         It takes a board and returns a tuple of scores for each player
         
         :param board: the board to evaluate
-        :return: The score of the board.
+        :return: The score of the board (O_score, X_score).
         """
         O_score = 0
         X_score = 0
@@ -402,9 +402,9 @@ class State:
             continuous_five_pattern = ai_settings.O_END_GAME_PATTERN
 
         possible_moves = State.generate_possible_moves(board, 1)
+        check_mate_moves = []
         for move in possible_moves:
-            r, c = move
-            direction_patterns = State.get_direction_patterns(board, (r, c), streak, current_turn)
+            direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)
             if(len(direction_patterns) > 0) :
                 for pattern in direction_patterns:
                     for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
@@ -416,8 +416,26 @@ class State:
                             pattern[i+4],
                         ]
                         if(checking_pattern == continuous_five_pattern):
-                            return (r, c)
-        return None
+                            check_mate_moves.append(move)
+        if(len(check_mate_moves) > 0):
+            score = 0
+            best_move = None
+            for move in check_mate_moves:
+                temp_board = deepcopy(board)
+                temp_board[move[0]][move[1]] = current_turn
+                O_score, X_score = State.evaluate(board)
+                temp_score = 0
+                if(current_turn == game_settings.O):
+                    temp_score = O_score - X_score
+                else:
+                    temp_score = X_score - O_score
+                if(temp_score > score):
+                    score = temp_score
+                    best_move = move
+            return best_move
+
+        else:
+            return None
     
     # unused function
     def has_check(board, current_turn, move):
