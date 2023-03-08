@@ -27,6 +27,12 @@ class State:
             self.current_turn = game_settings.COM
 
     def game_over(board):
+        """
+        It checks if there is a winning pattern in the board
+        
+        :param board: the current state of the game
+        :return: the winner of the game.
+        """
         value_lines = State.split_board_to_arrays(board)
 
         for value_line in value_lines:
@@ -51,6 +57,13 @@ class State:
         return game_settings.EMPTY
     
     def split_board_to_arrays(board_state):
+        """
+        It takes a 2D array and returns a list of 1D arrays, where each 1D array is a row, column, or
+        diagonal of the original 2D array
+        
+        :param board_state: a 2D array of the current board state
+        :return: A list of lists.
+        """
         res_arrays = []
         # diagonals: (SQUARE ONLY)
         # https://stackoverflow.com/questions/6313308/get-all-the-diagonals-in-a-matrix-list-of-lists-in-python
@@ -92,6 +105,15 @@ class State:
         return res_arrays
     
     def get_new_board_after_moves(board, last_moves, current_turn):
+        """
+        It takes a board, a list of moves, and the current turn, and returns a new board with the moves
+        applied
+        
+        :param board: the current board
+        :param last_moves: a list of tuples, each tuple is a move (row, col)
+        :param current_turn: the current player's turn
+        :return: A new board with the last moves applied to it.
+        """
         new_board = [row[:] for row in board]
         if len(last_moves) == 0:
             return new_board
@@ -103,12 +125,19 @@ class State:
         return new_board
     
     def is_valid_move(move_position, board):
+        """
+        It checks if the move is valid.
+        
+        :param move_position: the position of the move
+        :param board: the board that the player is playing on
+        :return: The return value is a boolean value.
+        """
         move_r, move_c = move_position
         is_r_valid = (0 <= move_r < game_settings.BOARD_ROWS)
         is_c_valid = (0 <= move_c < game_settings.BOARD_COLS)
         return is_c_valid and is_r_valid
     
-    def generate_possible_moves(board):
+    def generate_possible_moves(board, expansion_range):
         """
         If the board is empty, return all possible moves. Otherwise, return all possible moves that are
         not empty and have a neighbor
@@ -127,7 +156,7 @@ class State:
                     temp_move = board[r][c]
                     if(temp_move != game_settings.EMPTY):
                         continue
-                    if not State.has_neighbor((r, c), board):
+                    if not State.has_neighbor((r, c), board, expansion_range):
                         continue
                     possible_moves.append((r, c))
         # #test
@@ -138,10 +167,18 @@ class State:
 
         return possible_moves
     
-    def has_neighbor(move_position, board):
+    def has_neighbor(move_position, board, expansion_range):
+        """
+        It checks if a given position has a neighbor within a given range
+        
+        :param move_position: The position of the move you want to check
+        :param board: the current board state
+        :param expansion_range: The number of rows and columns to expand from the move position
+        :return: a boolean value.
+        """
         move_r, move_c = move_position
-        r_radius = ai_settings.EXPANSION_RANGE
-        c_radius = ai_settings.EXPANSION_RANGE
+        r_radius = expansion_range
+        c_radius = expansion_range
 
         for r in range(-r_radius, r_radius + 1):
             for c in range(-c_radius, c_radius + 1):
@@ -157,6 +194,197 @@ class State:
                     return True
         return False
     
+    def high_impact_move(board, current_turn):
+        """
+        It takes a board and a player, and returns the move that would have the highest impact on the
+        board, and the score of that move
+        
+        :param board: the current board
+        :param current_turn: the current player's turn
+        :return: A tuple of the highest score move and the highest score. 
+        Return (None, 0) if the highest impact move's score do not reach HIGH_IMPACT_MOVE_THRESHOLD.
+        """
+        temp_board = deepcopy(board)
+        board_O_score, board_X_score = State.evaluate(board)
+        highest_score = 0
+        highest_score_move = None
+        for r in range(0, game_settings.BOARD_ROWS):
+            for c in range(0, game_settings.BOARD_COLS):
+                if(temp_board[r][c] == game_settings.EMPTY):
+                    temp_board[r][c] = current_turn
+                    temp_board_O_score, temp_board_X_score = State.evaluate(temp_board)
+                    score = 0
+                    if(current_turn == game_settings.O):
+                        score = temp_board_O_score - board_O_score
+                    elif(current_turn == game_settings.X):
+                        score = temp_board_X_score - board_X_score
+                    
+                    if(score > highest_score):
+                        highest_score = score
+                        highest_score_move = (r, c)
+                    
+                    temp_board[r][c] = game_settings.EMPTY
+        
+        if (highest_score >= ai_settings.HIGH_IMPACT_MOVE_THRESHOLD):
+            return (highest_score_move, highest_score)
+        else:
+            return (None, 0)
+
+
+    def get_direction_patterns(board, move, streak, current_turn):
+        """
+        It takes a board, a move, a streak, and the current turn, and returns a list of lists of the
+        pieces in the directions of the move
+        
+        :param board: the current board
+        :param move: the move that is being evaluated
+        :param streak: the number of pieces in a row needed to win
+        :param current_turn: the current player's turn
+        :return: A list of lists of patterns.
+        """
+        if not State.is_valid_move(temp_move, board):
+            return []
+        # streak = number of unblocked pieces
+        move_r, move_c = move
+        # r ~ x
+        # c ~ y
+        direction_patterns = []
+        # horizontal
+        pattern = []
+        for i in range(-streak, streak + 1):
+            if(i == 0):
+                temp_move = move
+                pattern.append(current_turn)
+            else:
+                temp_move = (move_r + i, move_c)
+                if(State.is_valid_move(temp_move, board)):
+                    temp_move_r, temp_move_c = temp_move
+                    pattern.append(board[temp_move_r][temp_move_c])
+        if(len(pattern) > streak + 2):
+            direction_patterns.append(pattern)
+
+        # vertical
+        pattern = []
+        for i in range(-streak, streak + 1):
+            if(i == 0):
+                temp_move = move
+                pattern.append(current_turn)
+            else:
+                temp_move = (move_r, move_c + i)
+                if(State.is_valid_move(temp_move, board)):
+                    temp_move_r, temp_move_c = temp_move
+                    pattern.append(board[temp_move_r][temp_move_c])
+        if(len(pattern) > streak + 2):
+            direction_patterns.append(pattern)
+
+        # diagonals
+        # lower-left to upper-right
+        pattern = []
+        for i in range(-streak, streak + 1):
+            if(i == 0):
+                temp_move = move
+                pattern.append(current_turn)
+            else:
+                temp_move = (move_r + i, move_c + i)
+                if(State.is_valid_move(temp_move, board)):
+                    temp_move_r, temp_move_c = temp_move
+                    pattern.append(board[temp_move_r][temp_move_c])
+        if(len(pattern) > streak + 2):
+            direction_patterns.append(pattern)
+        # upper-left to lower-right
+        pattern = []
+        for i in range(-streak, streak + 1):
+            if(i == 0):
+                temp_move = move
+                pattern.append(current_turn)
+            else:
+                temp_move = (move_r - i, move_c + i)
+                if(State.is_valid_move(temp_move, board)):
+                    temp_move_r, temp_move_c = temp_move
+                    pattern.append(board[temp_move_r][temp_move_c])
+        if(len(pattern) > streak + 2):
+            direction_patterns.append(pattern)
+
+        return direction_patterns
+    
+    def evaluate(board):
+        """
+        It takes a board and returns a tuple of scores for each player
+        
+        :param board: the board to evaluate
+        :return: The score of the board.
+        """
+        O_score = 0
+        X_score = 0
+
+        lines = State.split_board_to_arrays(board)
+
+        for line in lines:
+            line_O_score, line_X_score = State.evaluate_line(line)
+            O_score += line_O_score
+            X_score += line_X_score
+
+        #test
+        # if(O_score >= 50000 or X_score >= 50000):
+
+        return (O_score, X_score)
+    
+    # return(O_score, X_score)
+    def evaluate_line(line):
+        """
+        It takes a line of the board and returns the score for O and X
+        
+        :param line: a list of the board positions in a row, column, or diagonal
+        :return: a tuple of two values.
+        """
+        O_score = 0
+        X_score = 0
+
+        # check 6 patterns
+        pattern_length = 6
+        if(len(line) >= pattern_length):
+            for i in range(0, len(line) - pattern_length + 1):
+                temp_line = [
+                    line[i],
+                    line[i+1],
+                    line[i+2],
+                    line[i+3],
+                    line[i+4],
+                    line[i+5]
+                ]
+                # O score
+                for p, pattern in enumerate(ai_settings.O_6_PATTERNS):
+                    if(temp_line == pattern):
+                        O_score += ai_settings.O_6_PATTERNS_SCORES[p]
+
+                # X score
+                for p, pattern in enumerate(ai_settings.X_6_PATTERNS):
+                    if(temp_line == pattern):
+                        X_score += ai_settings.X_6_PATTERNS_SCORES[p]
+
+        # check 6 patterns
+        pattern_length = 5
+        if(len(line) >= pattern_length):
+            for i in range(0, len(line) - pattern_length + 1):
+                temp_line = [
+                    line[i],
+                    line[i+1],
+                    line[i+2],
+                    line[i+3],
+                    line[i+4]
+                ]
+                # O score
+                for p, pattern in enumerate(ai_settings.O_5_PATTERNS):
+                    if(temp_line == pattern):
+                        O_score += ai_settings.O_5_PATTERNS_SCORES[p]
+
+                # X score
+                for p, pattern in enumerate(ai_settings.X_5_PATTERNS):
+                    if(temp_line == pattern):
+                        X_score += ai_settings.X_5_PATTERNS_SCORES[p]
+        return(O_score, X_score)
+
+    # unused function
     def has_checkmate(board, current_turn, move):
         """
         It checks if a move will be a "win move" for the current player
@@ -190,7 +418,8 @@ class State:
                     if(checking_pattern == continuous_five_pattern):
                         return True
         return False
-
+    
+    # unused function
     def has_check(board, current_turn, move):
         """
         It checks if a move could lead to a win for the current player
@@ -263,71 +492,3 @@ class State:
             
         # unblocked-threes combine one-end-blocked-fours
         return False
-            
-
-    def get_direction_patterns(board, move, streak, current_turn):
-        if not State.is_valid_move(temp_move, board):
-            return []
-        # streak = number of unblocked pieces
-        move_r, move_c = move
-        # r ~ x
-        # c ~ y
-        direction_patterns = []
-        # horizontal
-        pattern = []
-        for i in range(-streak, streak + 1):
-            if(i == 0):
-                temp_move = move
-                pattern.append(current_turn)
-            else:
-                temp_move = (move_r + i, move_c)
-                if(State.is_valid_move(temp_move, board)):
-                    temp_move_r, temp_move_c = temp_move
-                    pattern.append(board[temp_move_r][temp_move_c])
-        if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
-
-        # vertical
-        pattern = []
-        for i in range(-streak, streak + 1):
-            if(i == 0):
-                temp_move = move
-                pattern.append(current_turn)
-            else:
-                temp_move = (move_r, move_c + i)
-                if(State.is_valid_move(temp_move, board)):
-                    temp_move_r, temp_move_c = temp_move
-                    pattern.append(board[temp_move_r][temp_move_c])
-        if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
-
-        # diagonals
-        # lower-left to upper-right
-        pattern = []
-        for i in range(-streak, streak + 1):
-            if(i == 0):
-                temp_move = move
-                pattern.append(current_turn)
-            else:
-                temp_move = (move_r + i, move_c + i)
-                if(State.is_valid_move(temp_move, board)):
-                    temp_move_r, temp_move_c = temp_move
-                    pattern.append(board[temp_move_r][temp_move_c])
-        if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
-        # upper-left to lower-right
-        pattern = []
-        for i in range(-streak, streak + 1):
-            if(i == 0):
-                temp_move = move
-                pattern.append(current_turn)
-            else:
-                temp_move = (move_r - i, move_c + i)
-                if(State.is_valid_move(temp_move, board)):
-                    temp_move_r, temp_move_c = temp_move
-                    pattern.append(board[temp_move_r][temp_move_c])
-        if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
-
-        return direction_patterns
-

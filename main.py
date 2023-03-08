@@ -20,6 +20,16 @@ if __name__ == "__main__":
     while running:
         clock.tick(render_settings.FPS)
         pygame.display.update()
+
+        # AI move first
+        if(game_settings.FIRST_TURN == game_settings.COM and len(current_match.moves) == 0):
+            AI_calulation_time = -pygame.time.get_ticks()
+            ai_move = ai.next_move()
+            AI_calulation_time += pygame.time.get_ticks()
+            print("AI calculation time: ", AI_calulation_time/1000 ," seconds (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
+            render.handle_com_move(ai_move, current_match)
+            render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+                
         for event in pygame.event.get():
 
             #exit
@@ -31,7 +41,7 @@ if __name__ == "__main__":
                 if(render.is_new_game_button_pressed()):
                     current_match = State()
                     ai = ABPruningAI(current_match)
-                    render.update_state(current_match.board, game_settings.FIRST_TURN, False)
+                    render.render_state(current_match.board, game_settings.FIRST_TURN, False)
                     break
 
                 if State.game_over(current_match.board):
@@ -41,7 +51,7 @@ if __name__ == "__main__":
                 # HUMAN turn
                 if(current_match.current_turn == game_settings.HUMAN):
                     render.handle_human_move(current_match) 
-                    render.update_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
                     ai.state.board = current_match.board
 
                 if State.game_over(current_match.board):
@@ -53,10 +63,10 @@ if __name__ == "__main__":
                     
                     AI_calulation_time = -pygame.time.get_ticks()
                     ai_move = ai.next_move()
-                    AI_calulation_time = pygame.time.get_ticks()
-                    print("AI calculation time: ", AI_calulation_time ,"(depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
+                    AI_calulation_time += pygame.time.get_ticks()
+                    print("AI calculation time: ", AI_calulation_time/1000 ," seconds (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
                     render.handle_com_move(ai_move, current_match)
-                    render.update_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
                 
                 if State.game_over(current_match.board):
                     print("Game Over!")
