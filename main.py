@@ -65,9 +65,6 @@ if __name__ == "__main__":
                 # HUMAN turn
                 if(current_match.current_turn == game_settings.HUMAN):
 
-                    # Announcement
-                    print("Waiting for HUMAN's move")
-
                     render.handle_human_move(current_match) 
                     render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
                     ai.state.board = current_match.board
@@ -97,7 +94,10 @@ if __name__ == "__main__":
                     
                     render.handle_com_move(ai_move, current_match)
                     render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
-                
+
+                    # Announcement
+                    print("Waiting for HUMAN's move...")
+
                 if State.game_over(current_match.board):
                     
                     # Announcement
