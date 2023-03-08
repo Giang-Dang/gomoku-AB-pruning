@@ -21,6 +21,10 @@ if __name__ == "__main__":
         clock.tick(render_settings.FPS)
         pygame.display.update()
 
+        # DRAW
+        if (len(current_match.moves) == game_settings.MAX_MOVE_COUNT):
+            render.render_state(current_match.board, cu, True)
+            continue
         # AI move first
         if(game_settings.FIRST_TURN == game_settings.COM and len(current_match.moves) == 0):
             
