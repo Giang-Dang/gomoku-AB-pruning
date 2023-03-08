@@ -27,23 +27,28 @@ class GameRender:
         :return: The return value of the function is the value of the last expression evaluated.
         """
         self.clear()
-        if(player_win != game_settings.NO_ONE):
-            # current turn == HUMAN => COM win
-            if(player_win == game_settings.COM):
-                self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
-                return
-            # current turn == HUMAN => COM win
-            if(player_win == game_settings.HUMAN):
-                self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
-                return
 
-        if(current_turn == game_settings.HUMAN):
-            self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED)
+        # COM WIN
+        if(player_win == game_settings.COM):
+            self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
             return
-
-        if(current_turn == game_settings.COM):
-            self.draw_board(board, render_settings.COM_TURN_INFO_TEXT, render_settings.COLOR_BLUE)
+        # HUMAN WIN
+        if(player_win == game_settings.HUMAN):
+            self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
             return
+        if(player_win == game_settings.NO_ONE):
+            # DRAW
+            if(current_turn == game_settings.NO_ONE):
+                self.draw_board(board, render_settings.DRAW_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
+                return
+            # GAME IS NOT OVER YET. HUMAN TURN
+            if(current_turn == game_settings.HUMAN):
+                self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED)
+                return
+            # GAME IS NOT OVER YET. COM TURN
+            if(current_turn == game_settings.COM):
+                self.draw_board(board, render_settings.COM_TURN_INFO_TEXT, render_settings.COLOR_BLUE)
+                return
 
     def draw_X(self, x, y):
         """
