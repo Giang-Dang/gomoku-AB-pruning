@@ -13,28 +13,28 @@ class GameRender:
         self.screen = pygame.display.set_mode((render_settings.WINDOW_WIDTH, render_settings.WINDOW_HEIGHT))
         pygame.display.set_caption(render_settings.WINDOW_TITLE)
         self.screen.fill(render_settings.BOARD_COLOR)
-        self.update_state(state.board, game_settings.FIRST_TURN, False)
+        self.render_state(state.board, game_settings.FIRST_TURN, False)
         pygame.display.update()
 
     
-    def update_state(self, board, current_turn, player_win):
+    def render_state(self, board, current_turn, player_win):
         """
-        If the game is over, display the winner. If the game is not over, display whose turn it is
+        It renders board state and displays that board state
         
         :param board: the current state of the board
-        :param current_turn: the current turn of the game
-        :param is_win: True if the game is over, False otherwise
-        :return: The return value is the value of the last expression evaluated.
+        :param current_turn: The current turn of the game
+        :param player_win: The player who won the game
+        :return: The return value of the function is the value of the last expression evaluated.
         """
         self.clear()
         if(player_win != game_settings.NO_ONE):
             # current turn == HUMAN => COM win
             if(player_win == game_settings.COM):
-                self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_BLUE)
+                self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
                 return
             # current turn == HUMAN => COM win
             if(player_win == game_settings.HUMAN):
-                self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_RED)
+                self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
                 return
 
         if(current_turn == game_settings.HUMAN):
@@ -46,6 +46,12 @@ class GameRender:
             return
 
     def draw_X(self, x, y):
+        """
+        Draw an X on the screen at the given coordinates
+        
+        :param x: the x coordinate of the cell
+        :param y: 0-2
+        """
         #    x
         # y ╔═════════════════════════════════▶
         #   ║ (X1, Y1) ╔═══╗ (X2, Y1)
@@ -69,6 +75,14 @@ class GameRender:
         pygame.draw.line(self.screen, render_settings.COLOR_BLUE, (pos_X1, pos_Y2), (pos_X2, pos_Y1), render_settings.X_LINE_THICKNESS)
         
     def draw_O(self, x, y):
+        """
+        Draw a circle with a radius of O_RADIUS - O_CELL_BORDER at the center of the square at position
+        (x,y) on the board.
+        
+        :param x: the x coordinate of the board
+        :param y: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+        24, 25, 26, 27, 28, 29,
+        """
         posX = render_settings.BOARD_POS_X_MIN + render_settings.SQUARE_SIZE/2 + y * render_settings.SQUARE_SIZE + render_settings.O_LINE_THICKNESS/2
         posY = render_settings.BOARD_POS_Y_MIN + render_settings.SQUARE_SIZE/2 + x * render_settings.SQUARE_SIZE + render_settings.O_LINE_THICKNESS/2
         # subtract cell border
@@ -77,6 +91,14 @@ class GameRender:
         pygame.draw.circle(self.screen, render_settings.COLOR_RED, [posX, posY], radius , render_settings.O_LINE_THICKNESS)
     
     def draw_button(self, pos, width, height, text):
+        """
+        It draws a button on the screen with the given text, width, height, and position.
+        
+        :param pos: (x, y)
+        :param width: width of the button
+        :param height: the height of the button
+        :param text: The text that will be displayed on the button
+        """
         rectButton = pygame.Rect(pos, (width, height))
         font_text = pygame.font.Font(pygame.font.get_default_font(), render_settings.BUTTON_TEXT_FONT_SIZE)
         text_surf = font_text.render(text, True, render_settings.BUTTON_TEXT_COLOR)
@@ -85,6 +107,12 @@ class GameRender:
         self.screen.blit(text_surf, text_rect)
 
     def draw_info_text(self, text, textColor):
+        """
+        It draws text to the screen
+        
+        :param text: the text to be displayed
+        :param textColor: (255, 255, 255)
+        """
         text_pos = (render_settings.WINDOW_WIDTH/2, render_settings.BORDER_SIZE + render_settings.INFO_TEXT_FONT_SIZE/2)
 
         font_text = pygame.font.Font(pygame.font.get_default_font(), render_settings.INFO_TEXT_FONT_SIZE)
@@ -95,6 +123,13 @@ class GameRender:
 
     
     def draw_board(self, board_state, infoText, infoTextColor):
+        """
+        It draws the board, the info text, the new game button, and the moves on the board.
+        
+        :param board_state: the current state of the board
+        :param infoText: The text to be displayed on the screen
+        :param infoTextColor: The color of the text
+        """
         # draw board
         # draw vertical line
         for r in range (0, game_settings.BOARD_COLS + 1):
@@ -130,14 +165,27 @@ class GameRender:
     
     #COM moves
     def handle_com_move(self, com_move, state: State):
+        """
+        The function takes in a move from the AI and updates the state of the game
+        
+        :param com_move: the move the AI made
+        :param state: the current state of the game
+        :type state: State
+        :return: the move of the computer.
+        """
         state.update_move(game_settings.COM, com_move)
         #test
-        print("HUMAN move: ", com_move)
+        print("AI move: ", com_move)
         #/test
         return
 
     #HUMAN moves
     def is_new_game_button_pressed(self):
+        """
+        If the mouse button is pressed, and the mouse is in the button area, return True. Otherwise,
+        return False
+        :return: The return value is a boolean.
+        """
         mouse_button_pressed = pygame.mouse.get_pressed()
         if mouse_button_pressed[0]:
             mouse_position = pygame.mouse.get_pos()
@@ -148,6 +196,15 @@ class GameRender:
         return False
         
     def is_new_move_valid(self, mouse_position, state: State):
+        """
+        If the mouse position is in the board area, and the selected square is empty, then the move is
+        valid
+        
+        :param mouse_position: The position of the mouse on the screen
+        :param state: State
+        :type state: State
+        :return: The function is_new_move_valid() returns a boolean value.
+        """
         if (self.is_mouse_position_in_board_area(mouse_position)):
             square_x_position, square_y_position =  self.get_board_square_position(mouse_position)
             is_selected_square_empty = state.board[square_x_position][square_y_position] == game_settings.EMPTY
@@ -156,12 +213,24 @@ class GameRender:
             return False
 
     def is_mouse_position_in_board_area(self, mouse_position):
+        """
+        It checks if the mouse position is within the board area
+        
+        :param mouse_position: (x, y)
+        :return: The return value is a boolean.
+        """
         mouse_x_position, mouse_y_position = mouse_position
         is_mouse_x_position_valid = render_settings.BOARD_POS_X_MIN < mouse_x_position < render_settings.BOARD_POS_X_MAX
         is_mouse_y_position_valid = render_settings.BOARD_POS_Y_MIN < mouse_y_position < render_settings.BOARD_POS_Y_MAX
         return is_mouse_x_position_valid and is_mouse_y_position_valid
 
     def get_board_square_position(self, mouse_position):
+        """
+        The boardsquare's x, y position is inverse to the mouse positions'.
+        
+        :param mouse_position: (x, y)
+        :return: The board_square_x_position and board_square_y_position are being returned.
+        """
         mouse_x_position, mouse_y_position = mouse_position
         #The boardsquare's x, y position is inverse to the mouse positions'. 
         board_square_y_position = int((mouse_x_position - render_settings.BOARD_POS_X_MIN) / render_settings.SQUARE_SIZE)
@@ -169,16 +238,20 @@ class GameRender:
         return (board_square_x_position, board_square_y_position)
     
     def clear(self):
+        """
+        It clears the screen and updates the display
+        """
         self.screen.fill(render_settings.BOARD_COLOR)
         pygame.display.update()
 
     def handle_human_move(self, state: State):
         """
-        If the mouse is clicked, and the move is valid, then update the state with the human move
+        It takes human's mouse left click position and checks if it's a valid move. If it is, it updates the state with
+        the move
         
         :param state: State
         :type state: State
-        :return: update the position of the square that the human player clicked on to the state.board.
+        :return: the position of the square that the human player clicked on.
         """
         mouse_button_pressed = pygame.mouse.get_pressed()
         # mouse left click
