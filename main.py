@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
         # DRAW
         if (len(current_match.moves) == game_settings.MAX_MOVE_COUNT):
-            render.render_state(current_match.board, cu, True)
+            render.render_state(current_match.board, game_settings.NO_ONE, game_settings.NO_ONE)
             continue
         # AI move first
         if(game_settings.FIRST_TURN == game_settings.COM and len(current_match.moves) == 0):
