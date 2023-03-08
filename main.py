@@ -45,7 +45,10 @@ if __name__ == "__main__":
                     break
 
                 if State.game_over(current_match.board):
+                    
+                    # Announcement
                     print("Game Over!")
+
                     continue
                 
                 # HUMAN turn
@@ -55,21 +58,34 @@ if __name__ == "__main__":
                     ai.state.board = current_match.board
 
                 if State.game_over(current_match.board):
+                    
+                    # Announcement
                     print("Game Over!")
+
                     continue
 
                 # AI turn
                 if(current_match.current_turn == game_settings.COM):
                     
                     AI_calulation_time = -pygame.time.get_ticks()
+
+                    # Announcement
+                    print("AI is calculating next move...")
+
                     ai_move = ai.next_move()
                     AI_calulation_time += pygame.time.get_ticks()
-                    print("AI calculation time: ", AI_calulation_time/1000 ," seconds (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
+                    
+                    # Announcement
+                    print("AI calculation time: ", AI_calulation_time/1000 ," seconds.")
+                    
                     render.handle_com_move(ai_move, current_match)
                     render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
                 
                 if State.game_over(current_match.board):
+                    
+                    # Announcement
                     print("Game Over!")
+
                     continue
 
                 

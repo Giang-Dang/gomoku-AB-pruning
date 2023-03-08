@@ -22,18 +22,47 @@ class ABPruningAI:
         """
         #first move
         if(self.state.board == game_settings.EMPTY_BOARD or len(self.state.moves) <= 1):
+            
+            # Announcement
+            print("AI used random move.")
             return self.random_move(self.state, 1)
+
+        # if opponent or AI has checkmate move, AI will take this move
+        # take move if AI has checkmate move
+        com_checkmate_move = State.checkmate(self.state.board, self.state.current_turn)
+        if com_checkmate_move: 
+            return com_checkmate_move
         
-        # check if opponent has high impact move, AI will take this move
+        # otherwise if opponent has checkmate move, take it
+        opponent_checkmate_move = State.checkmate(self.state.board, game_settings.get_opponent(self.state.current_turn))
+        if opponent_checkmate_move: 
+            return opponent_checkmate_move
+
+        # "4-2" combo is a block 4
+
+        # if opponent or AI has high impact move, AI will take this move
         if ai_settings.ENABLE_HIGH_IMPACT_MOVE:
             opponent_high_impact_move, opponent_high_impact_score = State.high_impact_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
-            player_high_impact_move, player_high_impact_score = State.high_impact_move(self.state.board, self.state.current_turn)
-            if opponent_high_impact_move and opponent_high_impact_score > player_high_impact_score:
+            com_high_impact_move, com_high_impact_score = State.high_impact_move(self.state.board, self.state.current_turn)
+            if opponent_high_impact_move and opponent_high_impact_score > com_high_impact_score:
+                
+                # Announcement
+                print("AI used high impact move function (return a defensive move).")
+                
                 return opponent_high_impact_move
-            if player_high_impact_move and player_high_impact_score >= opponent_high_impact_score: # >=: Prioritize playing the move to the advantage of the player
-                return player_high_impact_move
+            
+            if com_high_impact_move and com_high_impact_score >= opponent_high_impact_score: # >=: Prioritize playing the move to the advantage of the player
+                
+                # Announcement
+                print("AI used high impact move function (return an offensive move).")
+                
+                return com_high_impact_move
 
         # if not
+        
+        # Announcement
+        print("Ineligible to use high impact move function, AI uses Alpha-Beta Pruning algorithm.")
+        
         root_node = MinimaxNode(self.state.board, self.state.moves[-1::1], self.state.current_turn, None)
         
         # #test
@@ -41,6 +70,8 @@ class ABPruningAI:
         # print(', '.join("%s: %s" % item for item in attrs.items()))
 
         score = ABPruningAI.alpha_beta(root_node, ai_settings.MAX_TREE_DEPTH_LEVEL, -infinity, +infinity, True)
+        # Announcement
+        print("AI used Alpha-Beta Pruning algorithm to calculate move (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
         return root_node.planing_next_move
 
     def random_move(self, state: State, expansion_range):
