@@ -64,8 +64,8 @@ class ABPruningAI:
         # Announcement
         print("Checking for \"one-end-blocked three and unblocked two\" combo move...")
 
-        opponent_ob3ub2_move = State.combo_ob3ub2_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
-        com_ob3ub2_move = State.combo_ob3ub2_move(self.state.board, self.state.current_turn)
+        opponent_ob3ub2_move = State.combo_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
+        com_ob3ub2_move = State.combo_move(self.state.board, self.state.current_turn)
         
         if com_ob3ub2_move:
             
@@ -148,7 +148,7 @@ class ABPruningAI:
         """
         # AI move first
         if(state.board == game_settings.EMPTY_BOARD):
-            return(int(game_settings.BOARD_ROWS / 2), int(game_settings.BOARD_COLS / 2))
+            return(int(game_settings.BOARD_ROW_COUNT / 2), int(game_settings.BOARD_COL_COUNT / 2))
         # HUMAN move first
         possible_moves = State.generate_possible_moves(state.board, expansion_range)
         return random.choice(possible_moves)

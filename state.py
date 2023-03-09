@@ -76,7 +76,7 @@ class State:
         #                 — —
         #                 —
         # start at *
-        diagonal_count = range(-(game_settings.BOARD_ROWS-1), game_settings.BOARD_COLS, 1)
+        diagonal_count = range(-(game_settings.BOARD_ROW_COUNT-1), game_settings.BOARD_COL_COUNT, 1)
         for d in diagonal_count:
             res_arrays.append( [ row[r+d] for r,row in enumerate(board_state) if 0 <= r+d < len(row)] )
 
@@ -96,9 +96,9 @@ class State:
             res_arrays.append(deepcopy(row))
 
         # columns
-        for c in range(0, game_settings.BOARD_COLS):
+        for c in range(0, game_settings.BOARD_COL_COUNT):
             temp_column = []
-            for r in range(0, game_settings.BOARD_ROWS):
+            for r in range(0, game_settings.BOARD_ROW_COUNT):
                 temp_column.append(board_state[r][c])
             res_arrays.append(temp_column)
         
@@ -133,8 +133,8 @@ class State:
         :return: The return value is a boolean value.
         """
         move_r, move_c = move_position
-        is_r_valid = (0 <= move_r < game_settings.BOARD_ROWS)
-        is_c_valid = (0 <= move_c < game_settings.BOARD_COLS)
+        is_r_valid = (0 <= move_r < game_settings.BOARD_ROW_COUNT)
+        is_c_valid = (0 <= move_c < game_settings.BOARD_COL_COUNT)
         return is_c_valid and is_r_valid
     
     def generate_possible_moves(board, expansion_range):
@@ -147,12 +147,12 @@ class State:
         """
         possible_moves = []
         if(board == game_settings.EMPTY_BOARD):
-            for r in range(0, game_settings.BOARD_ROWS):
-                for c in range(0, game_settings.BOARD_COLS):
+            for r in range(0, game_settings.BOARD_ROW_COUNT):
+                for c in range(0, game_settings.BOARD_COL_COUNT):
                     possible_moves.append((r, c))
         else:
-            for r in range(0, game_settings.BOARD_ROWS):
-                for c in range(0, game_settings.BOARD_COLS):
+            for r in range(0, game_settings.BOARD_ROW_COUNT):
+                for c in range(0, game_settings.BOARD_COL_COUNT):
                     temp_move = board[r][c]
                     if(temp_move != game_settings.EMPTY):
                         continue
@@ -208,8 +208,8 @@ class State:
         board_O_score, board_X_score = State.evaluate(board)
         highest_score = 0
         highest_score_move = None
-        for r in range(0, game_settings.BOARD_ROWS):
-            for c in range(0, game_settings.BOARD_COLS):
+        for r in range(0, game_settings.BOARD_ROW_COUNT):
+            for c in range(0, game_settings.BOARD_COL_COUNT):
                 if(temp_board[r][c] == game_settings.EMPTY):
                     temp_board[r][c] = current_turn
                     temp_board_O_score, temp_board_X_score = State.evaluate(temp_board)
@@ -511,10 +511,10 @@ class State:
         # unblocked-threes combine one-end-blocked-fours
         return False
     
-    def combo_ob3ub2_move(board, current_turn):
-        # "ob3-2"(one-end-blocked three and unblocked two) combo move
-        # is a combo which could create a one-end-blocked-four 
-        # and a unblocked three 
+    def combo_move(board, current_turn):
+        # combo move
+        # is a combo which could create a one-end-blocked-four and a unblocked three 
+        # or n blocked-four (n>=2)
 
         # get moves that could create one-end-blocked-four
         blocked_four_patterns = []
@@ -544,14 +544,19 @@ class State:
                             pattern[i+3],
                             pattern[i+4],
                         ]
+                        pattern_created_by_current_move_count = 0
                         for blocked_four_pattern in blocked_four_patterns:
                             if(checking_pattern == blocked_four_pattern):
+                                pattern_created_by_current_move_count += 1
                                 blocked_four_pattern_matched_count += 1
                                 matched_blocked_four_pattern_moves.append(move)
+        
+                        if pattern_created_by_current_move_count > 1: # this means that move can create at least 2 blocked fours -> a combo move
+                            return move
 
         # for each move that could create one-end-blocked-four, 
         # we scan if there is any unblocked-three created by that move
-        if blocked_four_pattern_matched_count > 0:
+        if blocked_four_pattern_matched_count == 1:
             # create and add element(s) to unblocked_three_pattens
             streak = 3 # streak = number of unblocked pieces
             unblocked_three_patterns = []
@@ -582,7 +587,8 @@ class State:
                                 ]
                                 for unblocked_three_pattern in unblocked_three_patterns:
                                     if(checking_pattern == unblocked_three_pattern):
-                                        return move
+                                        return move            
+
 
         return None
 

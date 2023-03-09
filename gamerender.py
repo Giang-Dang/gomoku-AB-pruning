@@ -137,12 +137,12 @@ class GameRender:
         """
         # draw board
         # draw vertical line
-        for r in range (0, game_settings.BOARD_COLS + 1):
+        for r in range (0, game_settings.BOARD_COL_COUNT + 1):
             
             pygame.draw.line(self.screen, render_settings.COLOR_BLACK, 
             [render_settings.BOARD_POS_X_MIN + render_settings.SQUARE_SIZE * r, render_settings.BOARD_POS_Y_MIN], [render_settings.BOARD_POS_X_MIN + render_settings.SQUARE_SIZE * r, render_settings.BOARD_POS_Y_MIN + render_settings.BOARD_HEIGHT], render_settings.BOARD_LINE_WIDTH)
         # draw horizontal line
-        for r in range (0, game_settings.BOARD_ROWS + 1):
+        for r in range (0, game_settings.BOARD_ROW_COUNT + 1):
             pygame.draw.line(self.screen, render_settings.COLOR_BLACK,
             [render_settings.BOARD_POS_X_MIN, render_settings.BOARD_POS_Y_MIN + render_settings.SQUARE_SIZE * r], [render_settings.BOARD_POS_X_MIN + render_settings.BOARD_WIDTH, render_settings.BOARD_POS_Y_MIN + render_settings.SQUARE_SIZE * r], render_settings.BOARD_LINE_WIDTH)
         
@@ -153,8 +153,8 @@ class GameRender:
         self.draw_button(render_settings.NEW_GAME_BUTTON_POS, render_settings.BUTTON_WIDTH, render_settings.BUTTON_HEIGHT, "NEW GAME")
 
         # render board moves
-        for r in range (0, game_settings.BOARD_ROWS):
-            for c in range (0, game_settings.BOARD_COLS):
+        for r in range (0, game_settings.BOARD_ROW_COUNT):
+            for c in range (0, game_settings.BOARD_COL_COUNT):
                 # Empty cell
                 if board_state[r][c] == game_settings.EMPTY: 
                     continue
