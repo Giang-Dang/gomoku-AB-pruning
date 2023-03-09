@@ -103,7 +103,7 @@ class ABPruningAI:
             if opponent_high_impact_move and opponent_high_impact_score > com_high_impact_score:
                 
                 # Announcement
-                print("AI has discovered that HUMAN has a high-impact move. AI has taken this move (a defensive move.")
+                print("AI has discovered that HUMAN has a high-impact move. AI has taken this move (a defensive move).")
                 
                 return opponent_high_impact_move
             

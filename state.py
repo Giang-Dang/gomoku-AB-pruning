@@ -231,7 +231,7 @@ class State:
             return (None, 0)
 
 
-    def get_direction_patterns(board, move, streak, current_turn):
+    def get_direction_pattern_tuples(board, move, streak, current_turn):
         """
         It takes a board, a move, a streak, and the current turn, and returns a list of lists of the
         pieces in the directions of the move
@@ -261,7 +261,7 @@ class State:
                     temp_move_r, temp_move_c = temp_move
                     pattern.append(board[temp_move_r][temp_move_c])
         if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
+            direction_patterns.append(('H', pattern))
 
         # vertical
         pattern = []
@@ -275,7 +275,7 @@ class State:
                     temp_move_r, temp_move_c = temp_move
                     pattern.append(board[temp_move_r][temp_move_c])
         if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
+            direction_patterns.append(('V', pattern))
 
         # diagonals
         # lower-left to upper-right
@@ -290,7 +290,7 @@ class State:
                     temp_move_r, temp_move_c = temp_move
                     pattern.append(board[temp_move_r][temp_move_c])
         if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
+            direction_patterns.append(('D1', pattern))
         # upper-left to lower-right
         pattern = []
         for i in range(-streak, streak + 1):
@@ -303,7 +303,7 @@ class State:
                     temp_move_r, temp_move_c = temp_move
                     pattern.append(board[temp_move_r][temp_move_c])
         if(len(pattern) > streak + 2):
-            direction_patterns.append(pattern)
+            direction_patterns.append(('D2', pattern))
 
         return direction_patterns
     
@@ -404,9 +404,11 @@ class State:
         possible_moves = State.generate_possible_moves(board, 1)
         check_mate_moves = []
         for move in possible_moves:
-            direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)
-            if(len(direction_patterns) > 0) :
-                for pattern in direction_patterns:
+            direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)
+
+            if(len(direction_pattern_tuples) > 0) :
+                for tuple in direction_pattern_tuples:
+                    direction, pattern = tuple
                     for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
                         checking_pattern = [
                             pattern[i],
@@ -457,9 +459,10 @@ class State:
         elif(current_turn == game_settings.O):
             unblocked_four_pattern = ai_settings.O_6_PATTERNS[0]
 
-        direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)
-        if(len(direction_patterns) > 0) :
-            for pattern in direction_patterns:
+        direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)
+        if(len(direction_pattern_tuples) > 0) :
+            for tuple in direction_pattern_tuples:
+                direction, pattern = tuple
                 # make sure that current_turn is counted in pattern
                 if(pattern[0] != game_settings.EMPTY and pattern[-1] != game_settings.EMPTY):
                     for i in range(0, len(pattern) - len(unblocked_four_pattern) + 1):
@@ -487,10 +490,11 @@ class State:
                 if(pattern.count(game_settings.O) == 3):
                     unblocked_three_patterns.append(pattern)
         
-        direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)
+        direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)
         
-        if(len(direction_patterns) > 0) :
-            for pattern in direction_patterns:
+        if(len(direction_pattern_tuples) > 0) :
+            for tuple in direction_pattern_tuples:
+                direction, pattern = tuple
                 # make sure that current_turn is counted in pattern
                 if(pattern[0] != game_settings.EMPTY and pattern[-1] != game_settings.EMPTY):
                     for i in range(0, len(pattern) - unblocked_three_pattern_length + 1):
@@ -519,7 +523,6 @@ class State:
         # get moves that could create one-end-blocked-four
         blocked_four_patterns = []
         blocked_four_pattern_length = 5
-        blocked_four_pattern_matched_count = 0
         matched_blocked_four_pattern_moves = []
         # add element(s) to blocked_four_patterns
         if(current_turn == game_settings.X):
@@ -533,9 +536,13 @@ class State:
         # scan for blocked-four
         possible_moves = State.generate_possible_moves(board, 2)
         for move in possible_moves:
-            direction_patterns = State.get_direction_patterns(board, move, 4, current_turn) # streak = 4 because we are checking length-5 patterns
-            if(len(direction_patterns) > 0) :
-                for pattern in direction_patterns:
+            move_direction_set = set()
+            matched_direction_count = 0
+
+            direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, 4, current_turn) # streak = 4 because we are checking length-5 patterns
+            if(len(direction_pattern_tuples) > 0) :
+                for tuple in direction_pattern_tuples:
+                    direction, pattern = tuple
                     for i in range(0, len(pattern) - blocked_four_pattern_length + 1):
                         checking_pattern = [
                             pattern[i],
@@ -544,19 +551,23 @@ class State:
                             pattern[i+3],
                             pattern[i+4],
                         ]
-                        pattern_created_by_current_move_count = 0
+                        has_pattern_in_this_direction = False
                         for blocked_four_pattern in blocked_four_patterns:
                             if(checking_pattern == blocked_four_pattern):
-                                pattern_created_by_current_move_count += 1
-                                blocked_four_pattern_matched_count += 1
-                                matched_blocked_four_pattern_moves.append(move)
+                                has_pattern_in_this_direction = True
+                                
+                        if has_pattern_in_this_direction:
+                            matched_blocked_four_pattern_moves.append(move)
+                            if (move, direction) not in move_direction_set:
+                                move_direction_set.add((move, direction))
+                                matched_direction_count += 1
         
-                        if pattern_created_by_current_move_count > 1: # this means that move can create at least 2 blocked fours -> a combo move
-                            return move
+            if matched_direction_count > 1: # this means that move can create at least 2 blocked fours -> a combo move
+                return move
 
         # for each move that could create one-end-blocked-four, 
         # we scan if there is any unblocked-three created by that move
-        if blocked_four_pattern_matched_count == 1:
+        if len(matched_blocked_four_pattern_moves) >= 1:
             # create and add element(s) to unblocked_three_pattens
             streak = 3 # streak = number of unblocked pieces
             unblocked_three_patterns = []
@@ -571,11 +582,13 @@ class State:
                         unblocked_three_patterns.append(pattern)
             # scan for unblocked-three
             for move in matched_blocked_four_pattern_moves:
-                direction_patterns = State.get_direction_patterns(board, move, streak, current_turn)        
-                if(len(direction_patterns) > 0) :
-                    for pattern in direction_patterns:
+                direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)  
+                
+                if(len(direction_pattern_tuples) > 0) :
+                    for tuple in direction_pattern_tuples:
+                        direction, pattern = tuple
                         # make sure that current_turn is counted in pattern
-                        if(pattern[0] != game_settings.EMPTY and pattern[-1] != game_settings.EMPTY):
+                        if(pattern[streak] == current_turn): # center pattern must be the current move
                             for i in range(0, len(pattern) - unblocked_three_pattern_length + 1):
                                 checking_pattern = [
                                     pattern[i],
@@ -585,10 +598,10 @@ class State:
                                     pattern[i+4],
                                     pattern[i+5]
                                 ]
+
                                 for unblocked_three_pattern in unblocked_three_patterns:
                                     if(checking_pattern == unblocked_three_pattern):
                                         return move            
-
 
         return None
 
