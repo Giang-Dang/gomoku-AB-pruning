@@ -523,7 +523,8 @@ class State:
         # get moves that could create one-end-blocked-four
         blocked_four_patterns = []
         blocked_four_pattern_length = 5
-        matched_blocked_four_pattern_moves = []
+        matched_blocked_four_pattern_moves_directions = []
+        move_direction_dictionary = dict()
         # add element(s) to blocked_four_patterns
         if(current_turn == game_settings.X):
             for pattern in ai_settings.X_5_PATTERNS:
@@ -535,11 +536,11 @@ class State:
                     blocked_four_patterns.append(pattern)
         # scan for blocked-four
         possible_moves = State.generate_possible_moves(board, 2)
-        for move in possible_moves:
+        for blocked_four_tupple in possible_moves:
             move_direction_set = set()
             matched_direction_count = 0
 
-            direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, 4, current_turn) # streak = 4 because we are checking length-5 patterns
+            direction_pattern_tuples = State.get_direction_pattern_tuples(board, blocked_four_tupple, 4, current_turn) # streak = 4 because we are checking length-5 patterns
             if(len(direction_pattern_tuples) > 0) :
                 for tuple in direction_pattern_tuples:
                     direction, pattern = tuple
@@ -555,19 +556,21 @@ class State:
                         for blocked_four_pattern in blocked_four_patterns:
                             if(checking_pattern == blocked_four_pattern):
                                 has_pattern_in_this_direction = True
+                                move_direction_dictionary[blocked_four_tupple] = (direction, checking_pattern)
                                 
                         if has_pattern_in_this_direction:
-                            matched_blocked_four_pattern_moves.append(move)
-                            if (move, direction) not in move_direction_set:
-                                move_direction_set.add((move, direction))
+                            matched_blocked_four_pattern_moves_directions.append((direction, blocked_four_tupple))
+                            if (blocked_four_tupple, direction) not in move_direction_set:
+                                move_direction_set.add((direction, blocked_four_tupple))
+                                
                                 matched_direction_count += 1
         
             if matched_direction_count > 1: # this means that move can create at least 2 blocked fours -> a combo move
-                return move
+                return blocked_four_tupple
 
         # for each move that could create one-end-blocked-four, 
         # we scan if there is any unblocked-three created by that move
-        if len(matched_blocked_four_pattern_moves) >= 1:
+        if len(matched_blocked_four_pattern_moves_directions) >= 1:
             # create and add element(s) to unblocked_three_pattens
             streak = 3 # streak = number of unblocked pieces
             unblocked_three_patterns = []
@@ -580,9 +583,11 @@ class State:
                 for pattern in ai_settings.O_6_PATTERNS:
                     if(pattern.count(game_settings.O) == 3):
                         unblocked_three_patterns.append(pattern)
+
             # scan for unblocked-three
-            for move in matched_blocked_four_pattern_moves:
-                direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)  
+            for blocked_four_tupple in matched_blocked_four_pattern_moves_directions:
+                blocked_four_direction, blocked_four_move = blocked_four_tupple
+                direction_pattern_tuples = State.get_direction_pattern_tuples(board, blocked_four_move, streak, current_turn)  
                 
                 if(len(direction_pattern_tuples) > 0) :
                     for tuple in direction_pattern_tuples:
@@ -600,8 +605,9 @@ class State:
                                 ]
 
                                 for unblocked_three_pattern in unblocked_three_patterns:
-                                    if(checking_pattern == unblocked_three_pattern):
-                                        return move            
+                                    # checking direction to prevent this pattern [X, O, E, O, O, E] could lead to a combo move
+                                    if(checking_pattern == unblocked_three_pattern and direction != blocked_four_direction):
+                                        return blocked_four_move            
 
         return None
 
