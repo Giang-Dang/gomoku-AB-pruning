@@ -1,4 +1,5 @@
 from copy import deepcopy
+from math import inf as infinity
 
 import Settings.gamesettings as game_settings
 import Settings.aisettings as ai_settings
@@ -159,11 +160,6 @@ class State:
                     if not State.has_neighbor((r, c), board, expansion_range):
                         continue
                     possible_moves.append((r, c))
-        # #test
-        # for move in possible_moves:
-        #     print(move, end=" ")
-        # print()
-        # print(len(possible_moves))
 
         return possible_moves
     
@@ -324,9 +320,6 @@ class State:
             O_score += line_O_score
             X_score += line_X_score
 
-        #test
-        # if(O_score >= 50000 or X_score >= 50000):
-
         return (O_score, X_score)
     
     # return(O_score, X_score)
@@ -405,7 +398,6 @@ class State:
         check_mate_moves = []
         for move in possible_moves:
             direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)
-
             if(len(direction_pattern_tuples) > 0) :
                 for tuple in direction_pattern_tuples:
                     direction, pattern = tuple
@@ -420,7 +412,7 @@ class State:
                         if(checking_pattern == continuous_five_pattern):
                             check_mate_moves.append(move)
         if(len(check_mate_moves) > 0):
-            score = 0
+            score = -infinity
             best_move = None
             for move in check_mate_moves:
                 temp_board = deepcopy(board)
