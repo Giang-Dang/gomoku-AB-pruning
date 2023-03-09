@@ -62,7 +62,7 @@ class ABPruningAI:
         # if opponent or AI has a ob3ub2 combo move, AI will take this move
 
         # Announcement
-        print("Checking for \"one-end-blocked three and unblocked two\" combo move...")
+        print("Checking for combo moves...")
 
         opponent_ob3ub2_move = State.combo_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
         com_ob3ub2_move = State.combo_move(self.state.board, self.state.current_turn)
