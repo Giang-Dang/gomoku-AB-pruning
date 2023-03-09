@@ -5,7 +5,6 @@ from state import State
 import Settings.rendersettings as render_settings
 import Settings.gamesettings as game_settings
 
-
 class GameRender:
     def __init__(self, state: State):
         pygame.init()
@@ -13,11 +12,14 @@ class GameRender:
         self.screen = pygame.display.set_mode((render_settings.WINDOW_WIDTH, render_settings.WINDOW_HEIGHT))
         pygame.display.set_caption(render_settings.WINDOW_TITLE)
         self.screen.fill(render_settings.BOARD_COLOR)
-        self.render_state(state.board, game_settings.FIRST_TURN, False)
+        if (len(state.moves) > 0):
+            self.render_state(state.board, game_settings.FIRST_TURN, False, state.moves[-1])
+        else:
+            self.render_state(state.board, game_settings.FIRST_TURN, False, (-1,-1))
         pygame.display.update()
 
     
-    def render_state(self, board, current_turn, player_win):
+    def render_state(self, board, current_turn, player_win, last_move):
         """
         It renders board state and displays that board state
         
@@ -30,27 +32,28 @@ class GameRender:
 
         # COM WIN
         if(player_win == game_settings.COM):
-            self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
+            self.draw_board(board, render_settings.COM_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN, last_move, render_settings.get_last_move_color(player_win))
             return
         # HUMAN WIN
         if(player_win == game_settings.HUMAN):
-            self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
+            self.draw_board(board, render_settings.HUMAN_WIN_INFO_TEXT, render_settings.COLOR_DARK_GREEN, last_move, render_settings.get_last_move_color(player_win))
             return
         if(player_win == game_settings.NO_ONE):
+            last_turn = game_settings.get_opponent(current_turn)
             # DRAW
             if(current_turn == game_settings.NO_ONE):
-                self.draw_board(board, render_settings.DRAW_INFO_TEXT, render_settings.COLOR_DARK_GREEN)
+                self.draw_board(board, render_settings.DRAW_INFO_TEXT, render_settings.COLOR_DARK_GREEN, last_move, render_settings.get_last_move_color(last_turn))
                 return
             # GAME IS NOT OVER YET. HUMAN TURN
             if(current_turn == game_settings.HUMAN):
-                self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED)
+                self.draw_board(board, render_settings.HUMAN_TURN_INFO_TEXT, render_settings.COLOR_RED, last_move, render_settings.get_last_move_color(last_turn))
                 return
             # GAME IS NOT OVER YET. COM TURN
             if(current_turn == game_settings.COM):
-                self.draw_board(board, render_settings.COM_TURN_INFO_TEXT, render_settings.COLOR_BLUE)
+                self.draw_board(board, render_settings.COM_TURN_INFO_TEXT, render_settings.COLOR_BLUE, last_move, render_settings.get_last_move_color(last_turn))
                 return
 
-    def draw_X(self, x, y):
+    def draw_X(self, x, y, color):
         """
         Draw an X on the screen at the given coordinates
         
@@ -75,11 +78,11 @@ class GameRender:
         pos_Y1 = pos_Y1 + render_settings.X_CELL_BORDER
         pos_Y2 = pos_Y2 - render_settings.X_CELL_BORDER
         # draw line 1
-        pygame.draw.line(self.screen, render_settings.COLOR_BLUE, (pos_X1, pos_Y1), (pos_X2, pos_Y2), render_settings.X_LINE_THICKNESS)
+        pygame.draw.line(self.screen, color, (pos_X1, pos_Y1), (pos_X2, pos_Y2), render_settings.X_LINE_THICKNESS)
         # draw line 2
-        pygame.draw.line(self.screen, render_settings.COLOR_BLUE, (pos_X1, pos_Y2), (pos_X2, pos_Y1), render_settings.X_LINE_THICKNESS)
+        pygame.draw.line(self.screen, color, (pos_X1, pos_Y2), (pos_X2, pos_Y1), render_settings.X_LINE_THICKNESS)
         
-    def draw_O(self, x, y):
+    def draw_O(self, x, y, color):
         """
         Draw a circle with a radius of O_RADIUS - O_CELL_BORDER at the center of the square at position
         (x,y) on the board.
@@ -93,7 +96,7 @@ class GameRender:
         # subtract cell border
         radius = render_settings.O_RADIUS - render_settings.O_CELL_BORDER
         # draw circle
-        pygame.draw.circle(self.screen, render_settings.COLOR_RED, [posX, posY], radius , render_settings.O_LINE_THICKNESS)
+        pygame.draw.circle(self.screen, color, [posX, posY], radius , render_settings.O_LINE_THICKNESS)
     
     def draw_button(self, pos, width, height, text):
         """
@@ -127,7 +130,7 @@ class GameRender:
         pygame.display.update()
 
     
-    def draw_board(self, board_state, infoText, infoTextColor):
+    def draw_board(self, board_state, info_text, info_text_color, last_move, last_move_color):
         """
         It draws the board, the info text, the new game button, and the moves on the board.
         
@@ -147,23 +150,33 @@ class GameRender:
             [render_settings.BOARD_POS_X_MIN, render_settings.BOARD_POS_Y_MIN + render_settings.SQUARE_SIZE * r], [render_settings.BOARD_POS_X_MIN + render_settings.BOARD_WIDTH, render_settings.BOARD_POS_Y_MIN + render_settings.SQUARE_SIZE * r], render_settings.BOARD_LINE_WIDTH)
         
         # draw INFO TEXT
-        self.draw_info_text(infoText, infoTextColor)
+        self.draw_info_text(info_text, info_text_color)
 
         # draw NEW GAME button
         self.draw_button(render_settings.NEW_GAME_BUTTON_POS, render_settings.BUTTON_WIDTH, render_settings.BUTTON_HEIGHT, "NEW GAME")
 
         # render board moves
+        last_move_r, last_move_c = last_move
         for r in range (0, game_settings.BOARD_ROW_COUNT):
             for c in range (0, game_settings.BOARD_COL_COUNT):
+                # set color
+                color = None
+                if (r == last_move_r and c == last_move_c):
+                    color = last_move_color
+                else:
+                    if board_state[r][c] == game_settings.O: 
+                        color = render_settings.O_COLOR
+                    elif board_state[r][c] == game_settings.X: 
+                        color = render_settings.X_COLOR
                 # Empty cell
                 if board_state[r][c] == game_settings.EMPTY: 
                     continue
                 # Human move
                 if board_state[r][c] == game_settings.O: 
-                    self.draw_O(r, c)
+                    self.draw_O(r, c, color)
                 # COM move
                 if board_state[r][c] == game_settings.X: 
-                    self.draw_X(r, c)
+                    self.draw_X(r, c, color)
         pygame.display.update()
 
         # Announcement
@@ -274,4 +287,3 @@ class GameRender:
                 state.update_move(game_settings.HUMAN, human_move)
                 return
         return
-    

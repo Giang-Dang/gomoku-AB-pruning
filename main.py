@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
         # DRAW
         if (len(current_match.moves) == game_settings.MAX_MOVE_COUNT):
-            render.render_state(current_match.board, game_settings.NO_ONE, game_settings.NO_ONE)
+            render.render_state(current_match.board, game_settings.NO_ONE, game_settings.NO_ONE, current_match.moves[-1])
             continue
         # AI move first
         if(game_settings.FIRST_TURN == game_settings.COM and len(current_match.moves) == 0):
@@ -41,7 +41,7 @@ if __name__ == "__main__":
             print("AI calculation time: ", AI_calulation_time/1000 ," seconds (depth = ", ai_settings.MAX_TREE_DEPTH_LEVEL, ").")
             
             render.handle_com_move(ai_move, current_match)
-            render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+            render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board), current_match.moves[-1])
         #
         # HUMAN move first
         #         
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                 if(render.is_new_game_button_pressed()):
                     current_match = State()
                     ai = ABPruningAI(current_match)
-                    render.render_state(current_match.board, game_settings.FIRST_TURN, False)
+                    render.render_state(current_match.board, game_settings.FIRST_TURN, False, (-1, -1))
                     break
 
                 if State.game_over(current_match.board):
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 if(current_match.current_turn == game_settings.HUMAN):
 
                     render.handle_human_move(current_match) 
-                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board), current_match.moves[-1])
                     ai.state.board = current_match.board
 
                 if State.game_over(current_match.board):
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                     print("AI calculation time: ", AI_calulation_time/1000 ," seconds.")
                     
                     render.handle_com_move(ai_move, current_match)
-                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board))
+                    render.render_state(current_match.board, current_match.current_turn, State.game_over(current_match.board), current_match.moves[-1])
 
                     # Announcement
                     print("Waiting for HUMAN's move...")
