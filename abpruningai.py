@@ -81,7 +81,7 @@ class ABPruningAI:
             # Announcement
             print("HUMAN has a combo move. Block it!")
             
-            return com_high_impact_move
+            return opponent_combo_move
 
         # Announcement
         print("There is no combo move.")
