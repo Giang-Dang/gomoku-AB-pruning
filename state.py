@@ -581,7 +581,14 @@ class State:
                         if(pattern[move_pos_in_pattern] == current_turn): # center pattern must be the current move
                             check_left_pattern = pattern[:4].count(current_turn) >= 3 and pattern[:4].count(game_settings.get_opponent(current_turn)) == 0
                             check_right_pattern = pattern[3:].count(current_turn) >= 3 and pattern[3:].count(game_settings.get_opponent(current_turn)) == 0
-                            has_unblocked_three = check_left_pattern or check_right_pattern      
+                            M = current_turn
+                            E = game_settings.EMPTY
+                            check_center_pattern = (
+                                pattern[1:6] == [E, M, M, M, E] # _mMm_
+                                or pattern[0:6] == [E, M, E, M, M, E] # _m_Mm_
+                                or pattern[1:] == [E, M, M, E, M, E] # _mM_m_
+                                )
+                            has_unblocked_three = check_left_pattern or check_right_pattern or check_center_pattern  
                             
                             if(has_unblocked_three and direction != blocked_four_direction):
                                 return blocked_four_move            

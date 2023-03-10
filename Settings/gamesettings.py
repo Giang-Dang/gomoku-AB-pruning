@@ -18,13 +18,13 @@ def get_opponent(player):
         return 1
 
 # TURN
-# # Human move 1st
-# FIRST_TURN = HUMAN
-# SECOND_TURN = COM
+# Human move 1st
+FIRST_TURN = HUMAN
+SECOND_TURN = COM
 
-# COM move 1st
-FIRST_TURN = COM
-SECOND_TURN = HUMAN
+# # COM move 1st
+# FIRST_TURN = COM
+# SECOND_TURN = HUMAN
 
 # SYMBOL
 EMPTY = NO_ONE
