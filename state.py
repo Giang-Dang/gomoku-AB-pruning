@@ -396,21 +396,15 @@ class State:
 
         possible_moves = State.generate_possible_moves(board, 1)
         check_mate_moves = []
+
         for move in possible_moves:
-            direction_pattern_tuples = State.get_direction_pattern_tuples(board, move, streak, current_turn)
-            if(len(direction_pattern_tuples) > 0) :
-                for tuple in direction_pattern_tuples:
-                    direction, pattern = tuple
-                    for i in range(0, len(pattern) - len(continuous_five_pattern) + 1):
-                        checking_pattern = [
-                            pattern[i],
-                            pattern[i+1],
-                            pattern[i+2],
-                            pattern[i+3],
-                            pattern[i+4],
-                        ]
-                        if(checking_pattern == continuous_five_pattern):
-                            check_mate_moves.append(move)
+            #test
+            print("move: ", move)
+            temp_board = deepcopy(board)
+            temp_board[move[0]][move[1]] = current_turn
+            if State.game_over(temp_board):
+                check_mate_moves.append(move)
+                
         if(len(check_mate_moves) > 0):
             score = -infinity
             best_move = None
