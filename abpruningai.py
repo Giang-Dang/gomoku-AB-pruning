@@ -60,36 +60,6 @@ class ABPruningAI:
         print("---------------------------------")
         
         # =======================================
-        # COMBO MOVE
-        # if opponent or AI has a combo move, AI will take this move
-
-        # Announcement
-        print("Checking for combo moves...")
-
-        opponent_combo_move = State.combo_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
-        com_combo_move = State.combo_move(self.state.board, self.state.current_turn)
-        
-        if com_combo_move:
-            
-            # Announcement
-            print("AI has a combo move. Take it!")
-            
-            return com_combo_move
-        
-        if opponent_combo_move: # >=: Prioritize playing the move to the advantage of the player
-            
-            # Announcement
-            print("HUMAN has a combo move. Block it!")
-            
-            return opponent_combo_move
-
-        # Announcement
-        print("There is no combo move.")
-        
-        # Announcement
-        print("---------------------------------")
-        
-        # =======================================
         # HIGH-IMPACT MOVE
         # if opponent or AI has a high-impact move, 
         # AI will take whether move which has highest score
@@ -120,6 +90,34 @@ class ABPruningAI:
             print("AI did not discover any high-impact moves.")
         
         # Announcement
+        print("---------------------------------")
+
+        # =======================================
+        # COMBO MOVE
+        # if opponent or AI has a combo move, AI will take this move
+
+        # Announcement
+        print("Checking for combo moves...")
+
+        opponent_combo_move = State.combo_move(self.state.board, game_settings.get_opponent(self.state.current_turn))
+        com_combo_move = State.combo_move(self.state.board, self.state.current_turn)
+        
+        if com_combo_move:
+            
+            # Announcement
+            print("AI has a combo move. Take it!")
+            
+            return com_combo_move
+        
+        if opponent_combo_move: # >=: Prioritize playing the move to the advantage of the player
+            
+            # Announcement
+            print("HUMAN has a combo move. Block it!")
+            
+            return opponent_combo_move
+
+        # Announcement
+        print("There is no combo move.")
         print("---------------------------------")
 
         # =======================================

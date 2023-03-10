@@ -398,8 +398,6 @@ class State:
         check_mate_moves = []
 
         for move in possible_moves:
-            #test
-            print("move: ", move)
             temp_board = deepcopy(board)
             temp_board[move[0]][move[1]] = current_turn
             if State.game_over(temp_board):
@@ -552,7 +550,12 @@ class State:
                                 matched_direction_count += 1
         
             if matched_direction_count > 1: # this means that move can create at least 2 blocked fours -> a combo move
-                return blocked_four_tupple
+                for current_set in move_direction_set:
+                    direction_set = set()
+                    current_set_direction = current_set[0]
+                    direction_set.add(current_set_direction)
+                    if (len(direction_set) > 1):
+                        return blocked_four_tupple
 
         # for each move that could create one-end-blocked-four, 
         # we scan if there is any unblocked-three created by that move
