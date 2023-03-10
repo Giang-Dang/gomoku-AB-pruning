@@ -560,43 +560,23 @@ class State:
         # for each move that could create one-end-blocked-four, 
         # we scan if there is any unblocked-three created by that move
         if len(matched_blocked_four_pattern_moves_directions) >= 1:
-            # create and add element(s) to unblocked_three_pattens
-            streak = 3 # streak = number of unblocked pieces
-            unblocked_three_patterns = []
-            unblocked_three_pattern_length = 6
-            if(current_turn == game_settings.X):
-                for pattern in ai_settings.X_6_PATTERNS:
-                    if(pattern.count(game_settings.X) == 3):
-                        unblocked_three_patterns.append(pattern)
-            elif(current_turn == game_settings.O):
-                for pattern in ai_settings.O_6_PATTERNS:
-                    if(pattern.count(game_settings.O) == 3):
-                        unblocked_three_patterns.append(pattern)
-
+            move_pos_in_pattern = 3
             # scan for unblocked-three
             for blocked_four_tupple in matched_blocked_four_pattern_moves_directions:
                 blocked_four_direction, blocked_four_move = blocked_four_tupple
-                direction_pattern_tuples = State.get_direction_pattern_tuples(board, blocked_four_move, streak, current_turn)  
+                direction_pattern_tuples = State.get_direction_pattern_tuples(board, blocked_four_move, move_pos_in_pattern, current_turn)  
                 
                 if(len(direction_pattern_tuples) > 0) :
                     for tuple in direction_pattern_tuples:
-                        direction, pattern = tuple
+                        direction, pattern = tuple # len(pattern) = 7
                         # make sure that current_turn is counted in pattern
-                        if(pattern[streak] == current_turn): # center pattern must be the current move
-                            for i in range(0, len(pattern) - unblocked_three_pattern_length + 1):
-                                checking_pattern = [
-                                    pattern[i],
-                                    pattern[i+1],
-                                    pattern[i+2],
-                                    pattern[i+3],
-                                    pattern[i+4],
-                                    pattern[i+5]
-                                ]
-
-                                for unblocked_three_pattern in unblocked_three_patterns:
-                                    # checking direction to prevent this pattern [X, O, E, O, O, E] could lead to a combo move
-                                    if(checking_pattern == unblocked_three_pattern and direction != blocked_four_direction):
-                                        return blocked_four_move            
+                        if(pattern[move_pos_in_pattern] == current_turn): # center pattern must be the current move
+                            check_left_pattern = pattern[:4].count(current_turn) >= 3 and pattern[:4].count(game_settings.get_opponent(current_turn)) == 0
+                            check_right_pattern = pattern[3:].count(current_turn) >= 3 and pattern[3:].count(game_settings.get_opponent(current_turn)) == 0
+                            has_unblocked_three = check_left_pattern or check_right_pattern      
+                            
+                            if(has_unblocked_three and direction != blocked_four_direction):
+                                return blocked_four_move            
 
         return None
 
