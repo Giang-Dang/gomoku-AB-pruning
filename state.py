@@ -500,6 +500,14 @@ class State:
         return False
     
     def combo_move(board, current_turn):
+        """
+        It checks if there is a move that can create a one-end-blocked-four and an unblocked-three at
+        the same time
+        
+        :param board: the current board
+        :param current_turn: the current player's turn
+        :return: a move that could create a combo move.
+        """
         # combo move
         # is a combo which could create a one-end-blocked-four and a unblocked three 
         # or n blocked-four (n>=2)
