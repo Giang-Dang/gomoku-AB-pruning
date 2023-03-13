@@ -109,7 +109,7 @@ class ABPruningAI:
             
             return com_combo_move
         
-        if opponent_combo_move: # >=: Prioritize playing the move to the advantage of the player
+        if opponent_combo_move: # >=: Prioritize the move that gives the current player an advantage.
             
             # Announcement
             print("HUMAN has a combo move. Block it!")
