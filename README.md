@@ -3,4 +3,4 @@
 - CAN EASILY BEAT AI AT https://gomokuonline.com/
 
 ## Screenshots:
-
+![Screenshot_gomoku_01.jpg](/Screenshot_gomoku_01.jpg)
