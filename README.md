@@ -5,7 +5,6 @@
 ## How do AI calculate moves?
 - Random in the first two moves.
 - Check if player has CHECKMATE MOVE? if player does, AI will take the best move to prevent it.
-- check if
 - check if player has a HIGH IMPACT MOVE? if player does, AI will take the best move to prevent it.
   A high impact move is a move which could lead to a checkmate move or create a great advantage for the player.
   (Ex: a move can create a pair of unblocked threes)
